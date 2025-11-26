@@ -42,7 +42,7 @@ float Solution::Get_Vc(float a, float h, float V0, float t)
 	{
 		return V0;
 	}
-	if (Vcount.size() != 0) //Для метода Get_Solution
+	if (Vcount.size() != 0) //пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Get_Solution
 	{
 		if (abs(Vcount[Vcount.size() - 1][0] - (t - h)) <= 0.00001)
 		{
@@ -69,7 +69,7 @@ float Solution::Get_Vc(float a, float h, float V0, float t)
 			}
 		}
 	}
-	else // Для прямого вызова из основной программы
+	else // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	{
 		Vpast = Get_Vc(a, h, V0, t - h);
 		k1 = a;
@@ -79,6 +79,7 @@ float Solution::Get_Vc(float a, float h, float V0, float t)
 		Vnew = Vpast + (h * (k1 + 2 * k2 + 2 * k3 + k4)) / 6;
 		return Vnew;
 	}
+	return 0.0f;
 }
 
 float Solution::Get_Sc(float a, float h, float V0, float S0, float t)
@@ -89,7 +90,7 @@ float Solution::Get_Sc(float a, float h, float V0, float S0, float t)
 	{
 		return S0;
 	}
-	if (Scount.size() != 0) // Для метода Get_Solution
+	if (Scount.size() != 0) // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Get_Solution
 	{
 		if (abs(Scount[Scount.size() - 1][0] - (t - h)) <= 0.00001)
 		{
@@ -109,7 +110,7 @@ float Solution::Get_Sc(float a, float h, float V0, float S0, float t)
 			}
 		}
 	}
-	else //Для прямого вызова из основной программы
+	else //пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	{
 		Spast = Get_Sc(a, h, V0, S0, t - h);
 		k1 = Get_Vc(a, h, V0, t - h);
@@ -119,6 +120,7 @@ float Solution::Get_Sc(float a, float h, float V0, float S0, float t)
 		Snew = Spast + (h * (k1 + 2 * k2 + 2 * k3 + k4)) / 6;
 		return Snew;
 	}
+	return 0.0f;
 }
 
 float Solution::Get_Vr(float a, float V0, float t)
