@@ -1,15 +1,11 @@
-#include "Solution.h"
-#include <iostream>
-#include <iomanip>
-#include <vector>
-using namespace std;
+#include "mainwindow.h"
 
-int main()
+#include <QApplication>
+
+int main(int argc, char *argv[])
 {
-	float a, h, V0, S0, tmax;
-	Solution sol;
-	cin >> a >> h >> V0 >> S0 >> tmax;
-	sol.Get_Solution(a, h, V0, S0, tmax);
-	system("pause");
-	return 0;
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
 }
