@@ -1,0 +1,15 @@
+# ninja log v7
+23	1214	7870544390108326	moon_landing_app_autogen/timestamp	bbed6c0c6ff0edeb
+23	1214	7870544390108326	moon_landing_app_autogen/mocs_compilation.cpp	bbed6c0c6ff0edeb
+23	1214	7870544390108326	C:/Users/Ibragim5/Desktop/Cpract/webC/moon_landing_app/build/Desktop_Qt_shared_MinGW_w64_MINGW64_MSYS2-Debug/moon_landing_app_autogen/timestamp	bbed6c0c6ff0edeb
+23	1214	7870544390108326	C:/Users/Ibragim5/Desktop/Cpract/webC/moon_landing_app/build/Desktop_Qt_shared_MinGW_w64_MINGW64_MSYS2-Debug/moon_landing_app_autogen/mocs_compilation.cpp	bbed6c0c6ff0edeb
+1251	3825	7870544391559378	CMakeFiles/moon_landing_app.dir/moon_landing_app_autogen/mocs_compilation.cpp.obj	7497eba2b7cfc100
+1263	3838	7870544391679354	CMakeFiles/moon_landing_app.dir/main.cpp.obj	5b0f3934968b8d4b
+1274	4761	7870544391777636	CMakeFiles/moon_landing_app.dir/mainwindow.cpp.obj	45579072c0408831
+4762	5171	7870544426662485	moon_landing_app.exe	6cf11d76d013194e
+79	531	7870545382155586	moon_landing_app_autogen/timestamp	bbed6c0c6ff0edeb
+79	531	7870545382155586	moon_landing_app_autogen/mocs_compilation.cpp	bbed6c0c6ff0edeb
+79	531	7870545382155586	C:/Users/Ibragim5/Desktop/Cpract/webC/moon_landing_app/build/Desktop_Qt_shared_MinGW_w64_MINGW64_MSYS2-Debug/moon_landing_app_autogen/timestamp	bbed6c0c6ff0edeb
+79	531	7870545382155586	C:/Users/Ibragim5/Desktop/Cpract/webC/moon_landing_app/build/Desktop_Qt_shared_MinGW_w64_MINGW64_MSYS2-Debug/moon_landing_app_autogen/mocs_compilation.cpp	bbed6c0c6ff0edeb
+532	3789	7870545386679401	CMakeFiles/moon_landing_app.dir/mainwindow.cpp.obj	45579072c0408831
+3789	4083	7870545419247614	moon_landing_app.exe	6cf11d76d013194e
