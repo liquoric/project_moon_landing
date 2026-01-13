@@ -5,6 +5,11 @@
 #include <vector>
 #include <cmath>
 #include <QDoubleSpinBox>
+#include <QString>
+#include <string>
+#include <QStandardPaths>
+#include <QDir>
+#include <QMessageBox>
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -12,7 +17,12 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->res_table->setColumnCount(3);
+    ui->res_table->setHorizontalHeaderItem(0, new QTableWidgetItem("Time"));
+    ui->res_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Height"));
+    ui->res_table->setHorizontalHeaderItem(2, new QTableWidgetItem("Speed"));
     connect(ui->Count_but, &QPushButton::clicked, this, &MainWindow::onCountClick);
+    connect(ui->save_to_but, &QPushButton::clicked, this, &MainWindow::onSave_toClick);
 }
 
 double MainWindow::GetTS()
@@ -30,40 +40,101 @@ vector<vector<double>> MainWindow::GetScount()
     return Scount;
 }
 
-void MainWindow::Get_Solution(double g, double h, double V0, double H0, double P, double m)
+void MainWindow::SaveToFile(std::string FileName){
+    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    QString fullPath = QDir(downloadsPath).filePath(QString::fromStdString(FileName));
+    ofstream file;
+    int i=0;
+    file.open(fullPath.toStdString(), ios::app);
+    for (i = 0; i < Vcount.size(); i++)
+    {
+        file << Scount[i][0] << "," << Scount[i][1] << "," << Vcount[i][1] << endl;
+    }
+    file.close();
+}
+
+void MainWindow::Get_Solution(double g, double h, double V0, double H0, double Pmin, double Pmax, double m)
 {
-    double tfall; // Время падения без двигателя
-    int calculation_number = 1; // номер попытки вычисления ts
-    bool close_to_ans = false; // при близком ответе может не хватать точности вычислений
-    No_Engine_Run(g, h, V0, H0); // Прогон без работы двигателя (для определения времени падения)
+    double i, best_t = -1, best_P;
+    vector<vector<double>> best_V, best_H;
+    for (i = Pmin; i < Pmax; i+=100)
+    {
+        if ((i / m) < g)
+        {
+            continue;
+        }
+        Get_tfall(g, h, V0, H0, i, m);
+        if (best_t < 0)
+        {
+            best_t = Vcount[Vcount.size() - 1][0];
+            best_P = i;
+            best_V = Vcount;
+            best_H = Scount;
+        }
+        else
+        {
+            if (best_t > Vcount[Vcount.size() - 1][0])
+            {
+                best_t = Vcount[Vcount.size() - 1][0];
+                best_P = i;
+                best_V = Vcount;
+                best_H = Scount;
+            }
+        }
+    }
+    Vcount = best_V;
+    Scount = best_H;
+}
+
+void MainWindow::Get_tfall(double g, double h, double V0, double H0, double P, double m)
+{
+    double tfall; // ����� ������� ��� ���������
+    int calculation_power = 1; // ����� ������� ���������� ts
+    bool close_to_ans = false, past_crush = false; // ��� ������� ������ ����� �� ������� �������� ����������
+    No_Engine_Run(g, h, V0, H0); // ������ ��� ������ ��������� (��� ����������� ������� �������)
     tfall = Scount[Scount.size() - 1][0];
     ts = tfall / 2;
-    while (true) // Когда ts будет вычмслен, цикл прервется
+    while (true) // ����� ts ����� ��������, ���� ���������
     {
-        calculation_number += 1;
+        calculation_power += 1;
         Get_RK(g, P, m, h, V0, H0, ts);
-        if ((abs(Vcount[Vcount.size() - 1][1]) < 5) && (Scount[Scount.size()-1][1] <= 0)) // Если скорость при приземлении в пределах допустимой, заканчиваем вычисление, выходим из цикла
+        if ((abs(Vcount[Vcount.size() - 1][1]) < 5) && (Scount[Scount.size() - 1][1] <= 0)) // ���� �������� ��� ����������� � �������� ����������, ����������� ����������, ������� �� �����
         {
             break;
         }
         else
         {
-            if (Scount[Scount.size() - 1][1] > H0) // Если удаляемся от поверхности, включаем двигатель позже
+            if (Scount[Scount.size() - 1][1] > H0) // ���� ��������� �� �����������, �������� ��������� �����
             {
-                if (close_to_ans) // Если при приближении к нужной ts начали улетать, возвращаемся на предыдущий шаг и увеличиваем точность
+                if (close_to_ans) // ���� ��� ����������� � ������ ts ������ �������, ������������ �� ���������� ��� � ����������� ��������
                 {
                     ts += h;
                     h /= 2;
                 }
                 else
                 {
-                    ts += tfall / (pow(2, calculation_number));
+                    if (past_crush)
+                    {
+                        ts += tfall / (pow(2, calculation_power-1));
+                        close_to_ans = true;
+                    }
+                    else
+                    {
+                        ts += tfall / (pow(2, calculation_power));
+                    }
                 }
             }
-            else // Если прилунились, то подбираем ts, пока скорость не будет в пределах допустимой
+            else // ���� �����������, �� ��������� ts, ���� �������� �� ����� � �������� ����������
             {
-                ts -= h;
-                close_to_ans = true;
+                if (close_to_ans)
+                {
+                    ts -= h;
+                }
+                else
+                {
+                    ts -= tfall / (pow(2, calculation_power));
+                    past_crush = true;
+                }
             }
         }
     }
@@ -185,27 +256,102 @@ double MainWindow::Get_Sc(double a, double h, double V0, double S0, double t)
     return 0.0f;
 }
 
-void MainWindow::onCountClick(){
-    int i;
-    QString solut = "";
-    double g, h=0.1, V0=0, H0, P, m, ts;
-    vector<vector<double>> V, H;
-    g = ui->g_doubleSpinBox->value();
-    H0 = ui->H0_doubleSpinBox->value();
-    P = ui->P_doubleSpinBox->value();
-    m = ui->m_doubleSpinBox->value();
-    Get_Solution(g, h, V0, H0, P, m);
-    ts = GetTS();
-    V = GetVcount();
-    H = GetScount();
-    solut = solut.append(to_string(ts) + "\n");
-    for (i = 0; i < V.size(); i++)
+void MainWindow::onCountClick()
+{
+    // Очищаем таблицу перед новым расчетом
+    ui->res_table->clearContents();
+    ui->res_table->setRowCount(0);
+
+    // Получаем параметры из интерфейса
+    double g = ui->g_doubleSpinBox->value();
+    double H0 = ui->H0_doubleSpinBox->value();
+    double Pmin = ui->Pmin_doubleSpinBox->value();
+    double Pmax = ui->Pmax_doubleSpinBox->value();
+    double m = ui->m_doubleSpinBox->value();
+    double h = 0.1;  // шаг по времени
+    double V0 = 0;   // начальная скорость
+
+    // Выполняем расчет
+    Get_Solution(g, h, V0, H0, Pmin, Pmax, m);
+
+    // Получаем результаты
+    vector<vector<double>> V = GetVcount();
+    vector<vector<double>> H = GetScount();
+
+    // Проверяем, что данные есть
+    if (V.empty() || H.empty() || V.size() != H.size())
     {
-        solut = solut.append(to_string(V[i][0]) + "\n");
-        solut = solut.append(to_string(V[i][1]) + "\n");
-        solut = solut.append(to_string(H[i][1]) + "\n");
+        QMessageBox::warning(this, "Ошибка",
+                             "Расчет не выполнен или данные некорректны!\n"
+                             "Проверьте входные параметры.");
+        return;
     }
-    ui->textEdit->setText(solut);
+
+    // Устанавливаем количество строк
+    ui->res_table->setRowCount(V.size());
+
+    // Заполняем таблицу данными
+    for (int i = 0; i < V.size(); i++)
+    {
+        // Время (секунды)
+        QTableWidgetItem *timeItem = new QTableWidgetItem(
+            QString::number(H[i][0], 'f', 3));  // 3 знака после запятой
+        ui->res_table->setItem(i, 0, timeItem);
+
+        // Высота (метры)
+        QTableWidgetItem *heightItem = new QTableWidgetItem(
+            QString::number(H[i][1], 'f', 3));
+        ui->res_table->setItem(i, 1, heightItem);
+
+        // Скорость (м/с)
+        QTableWidgetItem *velocityItem = new QTableWidgetItem(
+            QString::number(V[i][1], 'f', 3));
+        ui->res_table->setItem(i, 2, velocityItem);
+    }
+
+    // Добавляем заголовки столбцов
+    QStringList headers;
+    headers << "Время (с)" << "Высота (м)" << "Скорость (м/с)";
+    ui->res_table->setHorizontalHeaderLabels(headers);
+
+    // Настраиваем отображение таблицы
+    ui->res_table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->res_table->verticalHeader()->setVisible(false);
+
+    // Показываем статистику
+    double finalTime = H.back()[0];
+    double finalHeight = H.back()[1];
+    double finalVelocity = V.back()[1];
+
+    QString resultText = QString(
+                             "Результаты посадки:\n"
+                             "Время полета: %1 с\n"
+                             "Финальная высота: %2 м\n"
+                             "Финальная скорость: %3 м/с\n"
+                             "Всего точек расчета: %4")
+                             .arg(finalTime, 0, 'f', 2)
+                             .arg(finalHeight, 0, 'f', 2)
+                             .arg(finalVelocity, 0, 'f', 2)
+                             .arg(V.size());
+
+    // Выводим результат в statusBar или QLabel
+    ui->statusbar->showMessage(resultText, 5000);
+
+    // Или показываем в QMessageBox для наглядности
+    if (abs(finalVelocity) < 5.0 && abs(finalHeight) < 0.1)
+    {
+        QMessageBox::information(this, "Успех!",
+                                 "Мягкая посадка успешна!\n" + resultText);
+    }
+    else if (abs(finalVelocity) >= 5.0)
+    {
+        QMessageBox::critical(this, "Опасность!",
+                              "Критическая скорость посадки!\n" + resultText);
+    }
+}
+void MainWindow::onSave_toClick(){
+    QString FileName = ui->FileName_line->text();
+    SaveToFile(FileName.toStdString());
 }
 
 MainWindow::~MainWindow()

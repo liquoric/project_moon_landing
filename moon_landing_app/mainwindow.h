@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <vector>
+#include <fstream>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,7 +19,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void onCountClick();
-    void Get_Solution(double g, double h, double V0, double h0, double Pmax, double m);
+    void onSave_toClick();
+    void SaveToFile(std::string FileName);
+    void Get_Solution(double g, double h, double V0, double H0, double Pmin, double Pmax, double m);
+    void Get_tfall(double g, double h, double V0, double H0, double P, double m);
     double Get_Vc(double a, double h, double V0, double t);
     double Get_Sc(double a, double h, double V0, double S0, double t);
     void Get_RK(double g, double P, double m, double h, double V0, double H0, double t_start_engine);
